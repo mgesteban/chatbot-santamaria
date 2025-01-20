@@ -50,6 +50,8 @@ A full-stack chatbot application that uses OpenAI's Assistants API to provide in
 
 ## Setup
 
+### Local Development
+
 1. Clone the repository
 2. Install dependencies:
    ```bash
@@ -75,7 +77,7 @@ A full-stack chatbot application that uses OpenAI's Assistants API to provide in
      CORS_ORIGIN=http://localhost:3000
      ```
 
-4. Start the servers:
+4. Start the development servers:
    ```bash
    # Start backend server
    cd backend
@@ -86,16 +88,81 @@ A full-stack chatbot application that uses OpenAI's Assistants API to provide in
    npm start
    ```
 
+### Production Deployment
+
+The application is deployed using AWS services:
+
+1. Backend (AWS Elastic Beanstalk):
+   ```bash
+   cd backend
+   npm run deploy:init    # First time: Initialize EB application
+   npm run deploy:create  # First time: Create production environment
+   npm run deploy        # Deploy new changes
+   ```
+   - Production URL: https://production.eba-pkbniuf2.us-east-1.elasticbeanstalk.com
+   - Platform: Node.js 18 on 64bit Amazon Linux 2023
+   - Environment: Single instance (t2.micro)
+
+2. Frontend (AWS CloudFront + S3):
+   ```bash
+   cd frontend
+   npm run build
+   aws s3 sync build/ s3://chatbot-santamaria-frontend --delete
+   ```
+   - Production URL: https://d3thk52w5dqo5m.cloudfront.net
+   - Static files served from S3 bucket
+   - CloudFront provides CDN and SSL/TLS
+
+3. Production Environment Variables:
+   - Backend (.ebextensions/env.config):
+     ```yaml
+     option_settings:
+       aws:elasticbeanstalk:application:environment:
+         NODE_ENV: production
+         OPENAI_API_KEY: [configured]
+         OPENAI_ASSISTANT_ID: [configured]
+         DATABASE_URL: [MongoDB Atlas URL]
+         CORS_ORIGIN: https://d3thk52w5dqo5m.cloudfront.net
+     ```
+   - Frontend (.env):
+     ```
+     REACT_APP_API_URL=https://d3thk52w5dqo5m.cloudfront.net
+     ```
+
+4. Database:
+   - MongoDB Atlas cluster
+   - IP whitelist configured for Elastic Beanstalk
+   - Secure connection string with authentication
+
+For detailed deployment steps and configuration, see:
+- [deployment-checklist.md](deployment-checklist.md)
+- [chatbot-architecture.md](chatbot-architecture.md)
+
 ## Architecture
 
 The application follows a client-server architecture:
-- Frontend communicates with backend via REST API
-- Backend uses OpenAI Assistants API for chat functionality
-- Conversations are persisted in MongoDB
-- JWT handles authentication
-- CORS is configured for security
+- Frontend (React):
+  * Hosted on CloudFront + S3
+  * Communicates with backend through CloudFront
+  * Responsive chat interface
+  * Real-time message updates
 
-For more details, see [chatbot-architecture.md](chatbot-architecture.md)
+- Backend (Node.js + Express):
+  * Hosted on Elastic Beanstalk
+  * Uses OpenAI Assistants API
+  * MongoDB Atlas for data persistence
+  * JWT for authentication
+  * CORS configured for security
+
+Infrastructure:
+- AWS CloudFront for content delivery and API routing
+- S3 for static file hosting
+- Elastic Beanstalk for backend hosting
+- MongoDB Atlas for database
+- Nginx as reverse proxy
+
+For detailed architecture documentation, see:
+- [chatbot-architecture.md](chatbot-architecture.md)
 
 ## Contributing
 

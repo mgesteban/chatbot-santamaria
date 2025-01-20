@@ -6,7 +6,10 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "deploy": "eb deploy",
+    "deploy:init": "eb init chatbot-backend --platform node.js --region us-east-1",
+    "deploy:create": "eb create production"
   },
   "keywords": [],
   "author": "",

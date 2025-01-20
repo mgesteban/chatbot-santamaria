@@ -9,13 +9,23 @@ const app = express();
 
 // Middleware
 app.use(express.json());
-app.use(cors({
-  origin: config.cors.origin,
-  methods: ['GET', 'POST'],
-  allowedHeaders: ['Content-Type']
-}));
 
 // Routes
+app.get('/', (req, res) => {
+  res.json({
+    message: 'Chatbot API is running',
+    endpoints: {
+      chat: '/api/chat',
+      health: '/health'
+    }
+  });
+});
+
+// Handle OPTIONS requests
+app.options('*', (req, res) => {
+  res.status(204).end();
+});
+
 app.post('/api/chat', handleChat);
 
 // Health check route
